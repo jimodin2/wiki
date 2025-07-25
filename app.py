@@ -55,10 +55,20 @@ def fetch_section_links_api(page_title, section_name):
     for link in soup.find_all("a", href=True):
         anchor = link.get_text(strip=True)
         href = link['href']
+
+        # Skip empty anchors and internal jumps
         if not anchor or href.startswith("#"):
             continue
+
+        # 🛑 Skip links that look like years or dates
+        if anchor.isdigit() and (1000 <= int(anchor) <= 2100):
+            continue
+        if any(x in anchor for x in ["BC", "AD", "century"]):
+            continue
+
         full_link = f"https://en.wikipedia.org{href}" if href.startswith("/wiki/") else href
         link_type = "internal" if href.startswith("/wiki/") else "external"
+
         links_data.append({
             "Section": section_name,
             "Anchor": anchor,
